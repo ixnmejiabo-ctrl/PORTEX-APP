@@ -275,21 +275,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                             // Confirmar restauración
                             final confirm = await showDialog<bool>(
+                              // ignore: use_build_context_synchronously
                               context: context,
-                              builder: (context) => AlertDialog(
+                              builder: (ctx) => AlertDialog(
                                 title: Text('Restaurar Base de Datos'),
                                 content: Text(
                                   'ADVERTENCIA: Esta acción sobrescribirá TODOS los datos actuales con los del backup seleccionado.\n\nLa aplicación se cerrará automáticamente para aplicar los cambios.\n\n¿Deseas continuar?',
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, false),
+                                    onPressed: () => Navigator.pop(ctx, false),
                                     child: Text('Cancelar'),
                                   ),
                                   TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
+                                    onPressed: () => Navigator.pop(ctx, true),
                                     child: Text(
                                       'Restaurar y Cerrar',
                                       style: TextStyle(
@@ -301,7 +300,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             );
 
-                            if (confirm != true) return;
+                            if (confirm != true || !mounted) return;
 
                             try {
                               // CRITICAL: Cerrar conexión a la BD actual

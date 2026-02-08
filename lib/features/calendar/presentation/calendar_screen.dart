@@ -62,68 +62,129 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             const SizedBox(height: DesignTokens.space24),
 
-            // Layout Texto: Calendario (Izq) - Lista (Der)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Calendario (Flex 2)
-                Expanded(
-                  flex: 2,
-                  child: _buildCalendarGrid(
-                    isDark,
-                  ).animate().fadeIn(delay: 100.ms),
-                ),
-
-                const SizedBox(width: DesignTokens.space24),
-
-                // Lista de actividades (Flex 1)
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    padding: const EdgeInsets.all(DesignTokens.space16),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(
-                        DesignTokens.radiusMedium,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Actividades del mes',
-                          style: TextStyle(
-                            fontSize: DesignTokens.fontSize18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Color(0xFF111827),
+            // Layout Texto: Calendario - Lista (Responsive)
+            isMobile
+                ? Column(
+                    children: [
+                      // Calendario
+                      _buildCalendarGrid(
+                        isDark,
+                      ).animate().fadeIn(delay: 100.ms),
+                      const SizedBox(height: DesignTokens.space24),
+                      // Lista de actividades
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(DesignTokens.space16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.radiusMedium,
                           ),
                         ),
-                        const SizedBox(height: DesignTokens.space16),
-                        if (_actividadesDelMes.isEmpty)
-                          Text(
-                            'No hay actividades para este mes',
-                            style: TextStyle(
-                              color: isDark
-                                  ? DesignTokens.meteorGray
-                                  : Color(0xFF6B7280),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Actividades del mes',
+                              style: TextStyle(
+                                fontSize: DesignTokens.fontSize18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : Color(0xFF111827),
+                              ),
                             ),
-                          )
-                        else
-                          ListView(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            children: _actividadesDelMes
-                                .map((act) => _buildActivityCard(act, isDark))
-                                .toList(),
+                            const SizedBox(height: DesignTokens.space16),
+                            if (_actividadesDelMes.isEmpty)
+                              Text(
+                                'No hay actividades para este mes',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? DesignTokens.meteorGray
+                                      : Color(0xFF6B7280),
+                                ),
+                              )
+                            else
+                              ListView(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                children: _actividadesDelMes
+                                    .map(
+                                      (act) => _buildActivityCard(act, isDark),
+                                    )
+                                    .toList(),
+                              ),
+                          ],
+                        ),
+                      ).animate().fadeIn(delay: 150.ms),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Calendario (Flex 2)
+                      Expanded(
+                        flex: 2,
+                        child: _buildCalendarGrid(
+                          isDark,
+                        ).animate().fadeIn(delay: 100.ms),
+                      ),
+                      const SizedBox(width: DesignTokens.space24),
+                      // Lista de actividades (Flex 1)
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          padding: const EdgeInsets.all(DesignTokens.space16),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.radiusMedium,
+                            ),
                           ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 150.ms),
-                ),
-              ],
-            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Actividades del mes',
+                                style: TextStyle(
+                                  fontSize: DesignTokens.fontSize18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : Color(0xFF111827),
+                                ),
+                              ),
+                              const SizedBox(height: DesignTokens.space16),
+                              if (_actividadesDelMes.isEmpty)
+                                Text(
+                                  'No hay actividades para este mes',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? DesignTokens.meteorGray
+                                        : Color(0xFF6B7280),
+                                  ),
+                                )
+                              else
+                                ListView(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  children: _actividadesDelMes
+                                      .map(
+                                        (act) =>
+                                            _buildActivityCard(act, isDark),
+                                      )
+                                      .toList(),
+                                ),
+                            ],
+                          ),
+                        ).animate().fadeIn(delay: 150.ms),
+                      ),
+                    ],
+                  ),
           ],
         ),
       ),
@@ -131,20 +192,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Row(
       children: [
         Icon(
           Icons.calendar_today_rounded,
           color: DesignTokens.cyanNeon,
-          size: 32,
+          size: isMobile ? 24 : 32,
         ),
-        const SizedBox(width: DesignTokens.space16),
-        Text(
-          'Calendario de Actividades',
-          style: TextStyle(
-            fontSize: DesignTokens.fontSize32,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Color(0xFF111827),
+        SizedBox(width: isMobile ? DesignTokens.space12 : DesignTokens.space16),
+        Expanded(
+          child: Text(
+            'Calendario de Actividades',
+            style: TextStyle(
+              fontSize: isMobile
+                  ? DesignTokens.fontSize24
+                  : DesignTokens.fontSize32,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Color(0xFF111827),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ],

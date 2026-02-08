@@ -2,11 +2,14 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Servicio para backup y restore de la base de datos
 class BackupService {
   /// Realiza un backup de la base de datos
-  /// Realiza un backup de la base de datos permitiendo al usuario elegir la ubicación
+  /// Realiza un backup de la base de datos
+  /// En Desktop: Permite al usuario elegir la ubicación
+  /// En Android: Guarda automáticamente en /Downloads/PORTEX/
   static Future<String?> backupDatabase(String dbPath) async {
     try {
       final dbFile = File(dbPath);
@@ -19,22 +22,80 @@ class BackupService {
       final timestamp = DateTime.now().toIso8601String().split(
         'T',
       )[0]; // YYYY-MM-DD
-
       final fileName = 'portex_backup_$timestamp.db';
 
-      // Abrir diálogo para guardar archivo
-      final result = await FilePicker.platform.saveFile(
-        dialogTitle: 'Guardar Copia de Seguridad',
-        fileName: fileName,
-        allowedExtensions: ['db'],
-        type: FileType.custom,
-        lockParentWindow: true,
-      );
+      // Lógica específica para Android
+      if (Platform.isAndroid) {
+        // Solicitar permisos de almacenamiento
+        var status = await Permission.manageExternalStorage.status;
+        if (!status.isGranted) {
+          status = await Permission.manageExternalStorage.request();
+        }
 
-      if (result != null) {
-        // Copiar base de datos a la ubicación seleccionada
-        await dbFile.copy(result);
-        return result;
+        // Fallback para versiones antiguas de Android
+        if (!status.isGranted) {
+          status = await Permission.storage.status;
+          if (!status.isGranted) {
+            status = await Permission.storage.request();
+          }
+        }
+
+        if (status.isGranted) {
+          // Directorio de Descargas público
+          final downloadsDir = Directory('/storage/emulated/0/Download');
+          if (!await downloadsDir.exists()) {
+            // Fallback a getExternalStorageDirectory si no existe (raro)
+            final extDir = await getExternalStorageDirectory();
+            if (extDir == null) {
+              throw Exception('No se pudo acceder al almacenamiento');
+            }
+            // Esto nos daría ruta de app, pero el usuario quiere Descargas.
+            // Asumimos que /storage/emulated/0/Download es estándar.
+            throw Exception('No se encontró la carpeta de Descargas');
+          }
+
+          final portexDir = Directory('${downloadsDir.path}/PORTEX');
+          if (!await portexDir.exists()) {
+            await portexDir.create(recursive: true);
+          }
+
+          final backupPath = '${portexDir.path}/$fileName';
+          await dbFile.copy(backupPath);
+          return backupPath;
+        } else {
+          throw Exception('Permisos de almacenamiento denegados');
+        }
+      }
+      // Lógica para Desktop (Windows/Linux/MacOS)
+      else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        // Abrir diálogo para guardar archivo
+        final result = await FilePicker.platform.saveFile(
+          dialogTitle: 'Guardar Copia de Seguridad',
+          fileName: fileName,
+          allowedExtensions: ['db'],
+          type: FileType.custom,
+          lockParentWindow: true,
+        );
+
+        if (result != null) {
+          // Copiar base de datos a la ubicación seleccionada
+          await dbFile.copy(result);
+          return result;
+        }
+      } else {
+        // Fallback para otras plataformas (iOS/Web?)
+        // Usar FilePicker como default
+        final result = await FilePicker.platform.saveFile(
+          dialogTitle: 'Guardar Copia de Seguridad',
+          fileName: fileName,
+          allowedExtensions: ['db'],
+          type: FileType.custom,
+        );
+
+        if (result != null) {
+          await dbFile.copy(result);
+          return result;
+        }
       }
 
       return null; // Usuario canceló

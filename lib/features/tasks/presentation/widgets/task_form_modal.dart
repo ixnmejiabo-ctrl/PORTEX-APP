@@ -467,162 +467,301 @@ class _TaskFormModalState extends State<TaskFormModal> {
 
                   const SizedBox(height: DesignTokens.space16),
 
-                  // Tipo y Precio
-                  Row(
-                    children: [
-                      // Tipo Dropdown (Expanded 2)
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _tipos.contains(_tipoSeleccionado)
-                              ? _tipoSeleccionado
-                              : null,
-                          decoration: InputDecoration(
-                            labelText: 'Tipo',
-                            prefixIcon: Icon(
-                              Icons.category_rounded,
-                              color: DesignTokens.blueNeon,
-                            ),
-                          ),
-                          items: _tipos
-                              .map(
-                                (tipo) => DropdownMenuItem(
-                                  value: tipo,
-                                  child: Text(tipo),
+                  // Tipo y Precio (Responsive)
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 600;
+                      if (isMobile) {
+                        return Column(
+                          children: [
+                            DropdownButtonFormField<String>(
+                              initialValue: _tipos.contains(_tipoSeleccionado)
+                                  ? _tipoSeleccionado
+                                  : null,
+                              decoration: InputDecoration(
+                                labelText: 'Tipo',
+                                prefixIcon: Icon(
+                                  Icons.category_rounded,
+                                  color: DesignTokens.blueNeon,
                                 ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _tipoSeleccionado = value;
-
-                                // Auto-completar precio
-                                try {
-                                  final servicio = _servicios.firstWhere(
-                                    (s) => s.nombre == value,
-                                  );
-                                  _precioController.text = servicio.precio
-                                      .toStringAsFixed(
-                                        0,
-                                      ); // Sin decimales si es entero
-                                } catch (_) {}
-                              });
-                            }
-                          },
-                          validator: (value) =>
-                              value == null ? 'Requerido' : null,
-                        ),
-                      ),
-                      const SizedBox(width: DesignTokens.space16),
-                      // Precio Field (Expanded 1)
-                      Expanded(
-                        flex: 1,
-                        child: TextFormField(
-                          controller: _precioController,
-                          keyboardType: TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Precio',
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Text(
-                                'Bs',
-                                style: TextStyle(
-                                  color: DesignTokens.safeGreen,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                              ),
+                              items: _tipos
+                                  .map(
+                                    (tipo) => DropdownMenuItem(
+                                      value: tipo,
+                                      child: Text(tipo),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _tipoSeleccionado = value;
+                                    try {
+                                      final servicio = _servicios.firstWhere(
+                                        (s) => s.nombre == value,
+                                      );
+                                      _precioController.text = servicio.precio
+                                          .toStringAsFixed(0);
+                                    } catch (_) {}
+                                  });
+                                }
+                              },
+                            ),
+                            const SizedBox(height: DesignTokens.space16),
+                            TextFormField(
+                              controller: _precioController,
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Precio',
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Text(
+                                    'Bs',
+                                    style: TextStyle(
+                                      color: DesignTokens.safeGreen,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                prefixIconConstraints: BoxConstraints(
+                                  minWidth: 0,
+                                  minHeight: 0,
                                 ),
                               ),
                             ),
-                            prefixIconConstraints: BoxConstraints(
-                              minWidth: 0,
-                              minHeight: 0,
+                          ],
+                        );
+                      } else {
+                        return Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _tipos.contains(_tipoSeleccionado)
+                                    ? _tipoSeleccionado
+                                    : null,
+                                decoration: InputDecoration(
+                                  labelText: 'Tipo',
+                                  prefixIcon: Icon(
+                                    Icons.category_rounded,
+                                    color: DesignTokens.blueNeon,
+                                  ),
+                                ),
+                                items: _tipos
+                                    .map(
+                                      (tipo) => DropdownMenuItem(
+                                        value: tipo,
+                                        child: Text(tipo),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _tipoSeleccionado = value;
+                                      try {
+                                        final servicio = _servicios.firstWhere(
+                                          (s) => s.nombre == value,
+                                        );
+                                        _precioController.text = servicio.precio
+                                            .toStringAsFixed(0);
+                                      } catch (_) {}
+                                    });
+                                  }
+                                },
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ],
+                            const SizedBox(width: DesignTokens.space16),
+                            Expanded(
+                              flex: 1,
+                              child: TextFormField(
+                                controller: _precioController,
+                                keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: 'Precio',
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(
+                                      'Bs',
+                                      style: TextStyle(
+                                        color: DesignTokens.safeGreen,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  prefixIconConstraints: BoxConstraints(
+                                    minWidth: 0,
+                                    minHeight: 0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
                   ),
 
                   const SizedBox(height: DesignTokens.space16),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _estadoSeleccionado,
-                          decoration: InputDecoration(
-                            labelText: 'Estado',
-                            prefixIcon: Icon(
-                              Icons.info_rounded,
-                              color: DesignTokens.warningYellow,
-                            ),
-                          ),
-                          items: _estados
-                              .map(
-                                (estado) => DropdownMenuItem(
-                                  value: estado,
-                                  child: Text(estado),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 600;
+                      if (isMobile) {
+                        return Column(
+                          children: [
+                            DropdownButtonFormField<String>(
+                              initialValue: _estadoSeleccionado,
+                              decoration: InputDecoration(
+                                labelText: 'Estado',
+                                prefixIcon: Icon(
+                                  Icons.info_rounded,
+                                  color: DesignTokens.warningYellow,
                                 ),
-                              )
-                              .toList(),
-                          onChanged: (value) =>
-                              setState(() => _estadoSeleccionado = value!),
-                        ),
-                      ),
-                      const SizedBox(width: DesignTokens.space16),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _plataformaSeleccionada,
-                          decoration: InputDecoration(
-                            labelText: 'Plataforma',
-                            prefixIcon: Icon(
-                              Icons.public_rounded,
-                              color: DesignTokens.cyanNeon,
+                              ),
+                              items: _estados
+                                  .map(
+                                    (estado) => DropdownMenuItem(
+                                      value: estado,
+                                      child: Text(estado),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) =>
+                                  setState(() => _estadoSeleccionado = value!),
                             ),
-                          ),
-                          items: _plataformas
-                              .map(
-                                (plat) => DropdownMenuItem(
-                                  value: plat,
-                                  child: Text(plat),
+                            const SizedBox(height: DesignTokens.space16),
+                            DropdownButtonFormField<String>(
+                              initialValue: _plataformaSeleccionada,
+                              decoration: InputDecoration(
+                                labelText: 'Plataforma',
+                                prefixIcon: Icon(
+                                  Icons.public_rounded,
+                                  color: DesignTokens.cyanNeon,
                                 ),
-                              )
-                              .toList(),
-                          onChanged: (value) =>
-                              setState(() => _plataformaSeleccionada = value!),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: DesignTokens.space16),
-
-                  // Fechas
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDateField('Fecha Inicio', _fechaInicio, (
-                          date,
-                        ) {
-                          setState(() => _fechaInicio = date);
-                        }, isDark),
-                      ),
-                      const SizedBox(width: DesignTokens.space16),
-                      Expanded(
-                        child: _buildDateField(
-                          'Fecha Entrega',
-                          _fechaPublicado ??
-                              DateTime.now().add(Duration(days: 7)),
-                          (date) {
-                            setState(() => _fechaPublicado = date);
-                          },
-                          isDark,
-                        ),
-                      ),
-                    ],
+                              ),
+                              items: _plataformas
+                                  .map(
+                                    (plat) => DropdownMenuItem(
+                                      value: plat,
+                                      child: Text(plat),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) => setState(
+                                () => _plataformaSeleccionada = value!,
+                              ),
+                            ),
+                            const SizedBox(height: DesignTokens.space16),
+                            _buildDateField('Fecha Inicio', _fechaInicio, (
+                              date,
+                            ) {
+                              setState(() => _fechaInicio = date);
+                            }, isDark),
+                            const SizedBox(height: DesignTokens.space16),
+                            _buildDateField(
+                              'Fecha Entrega',
+                              _fechaPublicado ??
+                                  DateTime.now().add(Duration(days: 7)),
+                              (date) {
+                                setState(() => _fechaPublicado = date);
+                              },
+                              isDark,
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: _estadoSeleccionado,
+                                    decoration: InputDecoration(
+                                      labelText: 'Estado',
+                                      prefixIcon: Icon(
+                                        Icons.info_rounded,
+                                        color: DesignTokens.warningYellow,
+                                      ),
+                                    ),
+                                    items: _estados
+                                        .map(
+                                          (estado) => DropdownMenuItem(
+                                            value: estado,
+                                            child: Text(estado),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) => setState(
+                                      () => _estadoSeleccionado = value!,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: DesignTokens.space16),
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: _plataformaSeleccionada,
+                                    decoration: InputDecoration(
+                                      labelText: 'Plataforma',
+                                      prefixIcon: Icon(
+                                        Icons.public_rounded,
+                                        color: DesignTokens.cyanNeon,
+                                      ),
+                                    ),
+                                    items: _plataformas
+                                        .map(
+                                          (plat) => DropdownMenuItem(
+                                            value: plat,
+                                            child: Text(plat),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) => setState(
+                                      () => _plataformaSeleccionada = value!,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: DesignTokens.space16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDateField(
+                                    'Fecha Inicio',
+                                    _fechaInicio,
+                                    (date) {
+                                      setState(() => _fechaInicio = date);
+                                    },
+                                    isDark,
+                                  ),
+                                ),
+                                const SizedBox(width: DesignTokens.space16),
+                                Expanded(
+                                  child: _buildDateField(
+                                    'Fecha Entrega',
+                                    _fechaPublicado ??
+                                        DateTime.now().add(Duration(days: 7)),
+                                    (date) {
+                                      setState(() => _fechaPublicado = date);
+                                    },
+                                    isDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
+                    },
                   ),
 
                   const SizedBox(height: DesignTokens.space24),

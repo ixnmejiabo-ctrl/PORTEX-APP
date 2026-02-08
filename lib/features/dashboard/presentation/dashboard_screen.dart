@@ -384,17 +384,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: DesignTokens.space12),
                   Expanded(
                     child: _buildKPICard(
-                      icon: Icons.bar_chart_rounded,
-                      title: 'Ver Reportes',
-                      value: 'Reportes',
+                      icon: Icons.people_alt_rounded,
+                      title: 'Total Clientes',
+                      value: totalClientes.toString(),
                       color: DesignTokens.purpleNeon,
                       isDark: isDark,
                       onTap: () {
                         if (widget.onNavigate != null) {
-                          widget.onNavigate!(5);
+                          widget.onNavigate!(2); // Navigate to Clients
                         }
                       },
-                      isAction: true,
                     ),
                   ),
                 ],
@@ -437,17 +436,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: DesignTokens.space16),
               Expanded(
                 child: _buildKPICard(
-                  icon: Icons.bar_chart_rounded,
-                  title: 'Ver Reportes',
-                  value: 'Reportes',
+                  icon: Icons.people_alt_rounded,
+                  title: 'Total Clientes',
+                  value: totalClientes.toString(),
                   color: DesignTokens.purpleNeon,
                   isDark: isDark,
                   onTap: () {
                     if (widget.onNavigate != null) {
-                      widget.onNavigate!(5);
+                      widget.onNavigate!(2); // Navigate to Clients
                     }
                   },
-                  isAction: true,
                 ),
               ),
             ],

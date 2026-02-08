@@ -56,12 +56,14 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
 
     return GlassContainer(
-      width: 280,
-      padding: const EdgeInsets.symmetric(
-        vertical: DesignTokens.space24,
-        horizontal: DesignTokens.space16,
+      width: isMobile ? screenWidth * 0.75 : 280,
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? DesignTokens.space16 : DesignTokens.space24,
+        horizontal: isMobile ? DesignTokens.space12 : DesignTokens.space16,
       ),
       borderRadius: 0,
       blur: 30,
@@ -112,6 +114,11 @@ class _SidebarState extends State<Sidebar> {
           // Separador y Sección Inferior
           const Divider(height: DesignTokens.space32),
 
+          // Espaciado extra para bajar los iconos inferiores
+          SizedBox(
+            height: isMobile ? DesignTokens.space24 : DesignTokens.space48,
+          ),
+
           // Items Inferiores (Servicios, Reportes, Empresa)
           Column(
             children: [
@@ -139,7 +146,10 @@ class _SidebarState extends State<Sidebar> {
             ],
           ),
 
-          const Spacer(),
+          // Espaciado flexible hasta el fondo
+          SizedBox(
+            height: isMobile ? DesignTokens.space16 : DesignTokens.space24,
+          ),
 
           // Creator Info Button
           InkWell(

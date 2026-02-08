@@ -109,20 +109,72 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(actividades, actividades.precio);
         }
         if (from < 3) {
-          // Agregar campos de sincronización a todas las tablas
-          await m.addColumn(clientes, clientes.synced);
-          await m.addColumn(clientes, clientes.updatedAt);
-          await m.addColumn(clientes, clientes.version);
+          // NOTA: SQLite no permite DEFAULT con CURRENT_TIMESTAMP en ALTER TABLE
+          // Solución: Agregar columnas manualmente con valor estático
+          // Helper para verificar si una columna existe
+          Future<bool> columnExists(String table, String column) async {
+            final result = await customSelect(
+              'PRAGMA table_info($table)',
+              readsFrom: {},
+            ).get();
+            return result.any((row) => row.data['name'] == column);
+          }
 
-          await m.addColumn(actividades, actividades.synced);
-          await m.addColumn(actividades, actividades.updatedAt);
-          await m.addColumn(actividades, actividades.version);
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
 
-          await m.addColumn(servicios, servicios.synced);
-          await m.addColumn(servicios, servicios.updatedAt);
-          await m.addColumn(servicios, servicios.version);
+          // Clientes - verificar existencia antes de agregar
+          if (!await columnExists('clientes', 'synced')) {
+            await customStatement(
+              'ALTER TABLE clientes ADD COLUMN synced INTEGER NOT NULL DEFAULT 1',
+            );
+          }
+          if (!await columnExists('clientes', 'updated_at')) {
+            await customStatement(
+              'ALTER TABLE clientes ADD COLUMN updated_at INTEGER NOT NULL DEFAULT $timestamp',
+            );
+          }
+          if (!await columnExists('clientes', 'version')) {
+            await customStatement(
+              'ALTER TABLE clientes ADD COLUMN version INTEGER NOT NULL DEFAULT 1',
+            );
+          }
 
-          // Crear tabla de metadatos de sincronización
+          // Actividades - verificar existencia antes de agregar
+          if (!await columnExists('actividades', 'synced')) {
+            await customStatement(
+              'ALTER TABLE actividades ADD COLUMN synced INTEGER NOT NULL DEFAULT 1',
+            );
+          }
+          if (!await columnExists('actividades', 'updated_at')) {
+            await customStatement(
+              'ALTER TABLE actividades ADD COLUMN updated_at INTEGER NOT NULL DEFAULT $timestamp',
+            );
+          }
+          if (!await columnExists('actividades', 'version')) {
+            await customStatement(
+              'ALTER TABLE actividades ADD COLUMN version INTEGER NOT NULL DEFAULT 1',
+            );
+          }
+
+          // Servicios - verificar existencia antes de agregar
+          if (!await columnExists('servicios', 'synced')) {
+            await customStatement(
+              'ALTER TABLE servicios ADD COLUMN synced INTEGER NOT NULL DEFAULT 1',
+            );
+          }
+          if (!await columnExists('servicios', 'updated_at')) {
+            await customStatement(
+              'ALTER TABLE servicios ADD COLUMN updated_at INTEGER NOT NULL DEFAULT $timestamp',
+            );
+          }
+          if (!await columnExists('servicios', 'version')) {
+            await customStatement(
+              'ALTER TABLE servicios ADD COLUMN version INTEGER NOT NULL DEFAULT 1',
+            );
+          }
+
+          // Crear tabla de metadatos de sincronización si no existe
+          // (createTable maneja esto internamente)
           await m.createTable(syncMetadata);
         }
       },
