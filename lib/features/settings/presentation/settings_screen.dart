@@ -9,6 +9,8 @@ import 'package:drift/drift.dart' as drift;
 import '../../../core/database/database.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/widgets/glass_container.dart';
+import 'widgets/sync_server_section.dart';
+import 'widgets/sync_client_section.dart';
 
 /// Pantalla de Configuración de Empresa
 class SettingsScreen extends StatefulWidget {
@@ -83,11 +85,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignTokens.space32),
+        padding: EdgeInsets.all(
+          isMobile ? DesignTokens.space12 : DesignTokens.space24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -199,6 +204,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+
                             try {
                               // Obtener ruta de la BD
                               final dbFolder =
@@ -209,31 +216,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               final backupPath =
                                   await BackupService.backupDatabase(dbPath);
 
-                              if (mounted) {
-                                if (backupPath != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Backup guardado en: $backupPath',
-                                      ),
-                                      backgroundColor: DesignTokens.safeGreen,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                } else {
-                                  // Usuario canceló
-                                }
-                              }
-                            } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
+                              if (backupPath != null) {
+                                messenger.showSnackBar(
                                   SnackBar(
-                                    content: Text('Error al crear backup: $e'),
-                                    backgroundColor: DesignTokens.urgentRed,
+                                    content: Text(
+                                      'Backup guardado en: $backupPath',
+                                    ),
+                                    backgroundColor: DesignTokens.safeGreen,
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
                               }
+                            } catch (e) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Error al crear backup: $e'),
+                                  backgroundColor: DesignTokens.urgentRed,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
                             }
                           },
                           icon: Icon(
@@ -257,109 +258,98 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            // Capture DB reference early to avoid context usage after async gaps
+                            final db = Provider.of<AppDatabase>(
+                              context,
+                              listen: false,
+                            );
+
                             // Seleccionar archivo
                             final backupPath =
                                 await BackupService.pickBackupFile();
 
-                            if (backupPath != null && mounted) {
-                              // Confirmar restauración
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Restaurar Base de Datos'),
-                                  content: Text(
-                                    'ADVERTENCIA: Esta acción sobrescribirá TODOS los datos actuales con los del backup seleccionado.\n\nLa aplicación se cerrará automáticamente para aplicar los cambios.\n\n¿Deseas continuar?',
+                            if (backupPath == null) return;
+
+                            if (!mounted) return;
+
+                            // Confirmar restauración
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('Restaurar Base de Datos'),
+                                content: Text(
+                                  'ADVERTENCIA: Esta acción sobrescribirá TODOS los datos actuales con los del backup seleccionado.\n\nLa aplicación se cerrará automáticamente para aplicar los cambios.\n\n¿Deseas continuar?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: Text('Cancelar'),
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: Text('Cancelar'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: Text(
-                                        'Restaurar y Cerrar',
-                                        style: TextStyle(
-                                          color: DesignTokens.urgentRed,
-                                        ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: Text(
+                                      'Restaurar y Cerrar',
+                                      style: TextStyle(
+                                        color: DesignTokens.urgentRed,
                                       ),
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm != true) return;
+
+                            try {
+                              // CRITICAL: Cerrar conexión a la BD actual
+                              await db.close();
+
+                              final dbFolder =
+                                  await getApplicationDocumentsDirectory();
+                              final dbPath = p.join(dbFolder.path, 'portex.db');
+
+                              final success =
+                                  await BackupService.restoreDatabase(
+                                    dbPath,
+                                    backupPath,
+                                  );
+
+                              if (success) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Restauración completada. Cerrando aplicación...',
+                                    ),
+                                    backgroundColor: DesignTokens.safeGreen,
+                                    duration: Duration(seconds: 3),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                // Esperar para ver el mensaje
+                                await Future.delayed(Duration(seconds: 2));
+                                exit(0);
+                              } else {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Error al restaurar: Archivo bloqueado o inválido.',
+                                    ),
+                                    backgroundColor: DesignTokens.urgentRed,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Error crítico: $e'),
+                                  backgroundColor: DesignTokens.urgentRed,
+                                  behavior: SnackBarBehavior.floating,
                                 ),
                               );
-
-                              if (confirm == true && mounted) {
-                                try {
-                                  // CRITICAL: Cerrar conexión a la BD actual
-                                  final db = Provider.of<AppDatabase>(
-                                    context,
-                                    listen: false,
-                                  );
-                                  await db.close();
-
-                                  final dbFolder =
-                                      await getApplicationDocumentsDirectory();
-                                  final dbPath = p.join(
-                                    dbFolder.path,
-                                    'portex.db',
-                                  );
-
-                                  final success =
-                                      await BackupService.restoreDatabase(
-                                        dbPath,
-                                        backupPath,
-                                      );
-
-                                  if (mounted) {
-                                    if (success) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Restauración completada. Cerrando aplicación...',
-                                          ),
-                                          backgroundColor:
-                                              DesignTokens.safeGreen,
-                                          duration: Duration(seconds: 3),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                      // Esperar para ver el mensaje
-                                      await Future.delayed(
-                                        Duration(seconds: 2),
-                                      );
-                                      exit(0);
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Error al restaurar: Archivo bloqueado o inválido.',
-                                          ),
-                                          backgroundColor:
-                                              DesignTokens.urgentRed,
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                      // Nota: Si falló, la BD podría estar cerrada. Idealmente reiniciaríamos.
-                                    }
-                                  }
-                                } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Error crítico: $e'),
-                                        backgroundColor: DesignTokens.urgentRed,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
                             }
                           },
                           icon: Icon(
@@ -384,6 +374,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ).animate().fadeIn(delay: 100.ms, duration: 200.ms),
+
+            const SizedBox(height: DesignTokens.space24),
+
+            // Sección de sincronización (Desktop - Servidor)
+            Consumer<AppDatabase>(
+              builder: (context, db, _) => SyncServerSection(db: db),
+            ).animate().fadeIn(delay: 150.ms, duration: 200.ms),
+
+            const SizedBox(height: DesignTokens.space24),
+
+            // Sección de sincronización (Mobile - Cliente)
+            Consumer<AppDatabase>(
+              builder: (context, db, _) => SyncClientSection(db: db),
+            ).animate().fadeIn(delay: 150.ms, duration: 200.ms),
           ],
         ),
       ),

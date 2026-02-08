@@ -159,11 +159,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignTokens.space32),
+        padding: EdgeInsets.all(
+          isMobile ? DesignTokens.space16 : DesignTokens.space32,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -184,6 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   isDark: isDark,
                   onTaskCreated: _loadStats,
                   onClientCreated: _loadStats,
+                  onNavigate: widget.onNavigate,
                 )
                 .animate()
                 .fadeIn(delay: 75.ms, duration: 300.ms)
@@ -192,45 +196,79 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: DesignTokens.space32),
 
             // Gráficos y Widgets
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 900;
+
+                if (isMobile) {
+                  // Mobile: Stack vertically
+                  return Column(
                     children: [
                       _buildTasksChart(isDark)
                           .animate()
                           .fadeIn(delay: 100.ms, duration: 300.ms)
                           .scale(begin: const Offset(0.9, 0.9)),
-                      const SizedBox(height: DesignTokens.space24),
+                      const SizedBox(height: DesignTokens.space16),
                       _buildEarningsChart(isDark)
                           .animate()
                           .fadeIn(delay: 125.ms, duration: 300.ms)
                           .scale(begin: const Offset(0.9, 0.9)),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: DesignTokens.space24),
-
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
+                      const SizedBox(height: DesignTokens.space16),
                       _buildMiniCalendar(isDark)
                           .animate()
                           .fadeIn(delay: 150.ms, duration: 300.ms)
                           .slideX(begin: 0.1),
-                      const SizedBox(height: DesignTokens.space24),
+                      const SizedBox(height: DesignTokens.space16),
                       _buildPendingTasks(isDark)
                           .animate()
                           .fadeIn(delay: 200.ms, duration: 300.ms)
                           .slideX(begin: 0.1),
                     ],
-                  ),
-                ),
-              ],
+                  );
+                } else {
+                  // Desktop: Side by side
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          children: [
+                            _buildTasksChart(isDark)
+                                .animate()
+                                .fadeIn(delay: 100.ms, duration: 300.ms)
+                                .scale(begin: const Offset(0.9, 0.9)),
+                            const SizedBox(height: DesignTokens.space24),
+                            _buildEarningsChart(isDark)
+                                .animate()
+                                .fadeIn(delay: 125.ms, duration: 300.ms)
+                                .scale(begin: const Offset(0.9, 0.9)),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: DesignTokens.space24),
+
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          children: [
+                            _buildMiniCalendar(isDark)
+                                .animate()
+                                .fadeIn(delay: 150.ms, duration: 300.ms)
+                                .slideX(begin: 0.1),
+                            const SizedBox(height: DesignTokens.space24),
+                            _buildPendingTasks(isDark)
+                                .animate()
+                                .fadeIn(delay: 200.ms, duration: 300.ms)
+                                .slideX(begin: 0.1),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ],
         ),
@@ -241,8 +279,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ... (Header se mantiene igual) - Restaurando implementación original
   Widget _buildHeader(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return GradientContainer(
-      height: 200,
+      height: isMobile ? 150 : 200,
       borderRadius: BorderRadius.circular(DesignTokens.radiusLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +291,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(
             '¡Bienvenido a PORTEX!',
             style: TextStyle(
-              fontSize: DesignTokens.fontSize32,
+              fontSize: isMobile
+                  ? DesignTokens.fontSize24
+                  : DesignTokens.fontSize32,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Color(0xFF111827),
               shadows: [
@@ -262,21 +304,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          const SizedBox(height: DesignTokens.space8),
+          SizedBox(
+            height: isMobile ? DesignTokens.space4 : DesignTokens.space8,
+          ),
           Text(
             'Sistema de Gestión de Tareas y Reportes',
             style: TextStyle(
-              fontSize: DesignTokens.fontSize16,
+              fontSize: isMobile
+                  ? DesignTokens.fontSize14
+                  : DesignTokens.fontSize16,
               color: isDark
                   ? Colors.white.withValues(alpha: 0.9)
                   : Color(0xFF1F2937).withValues(alpha: 0.9),
             ),
           ),
-          const SizedBox(height: DesignTokens.space12),
+          SizedBox(
+            height: isMobile ? DesignTokens.space8 : DesignTokens.space12,
+          ),
           Text(
             '$_nombreEmpresa - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
             style: TextStyle(
-              fontSize: DesignTokens.fontSize14,
+              fontSize: isMobile
+                  ? DesignTokens.fontSize12
+                  : DesignTokens.fontSize14,
               color: isDark
                   ? Colors.white.withValues(alpha: 0.7)
                   : Color(0xFF374151),
@@ -288,55 +338,122 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildKPIsRow(bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildKPICard(
-            icon: Icons.task_alt_rounded,
-            title: 'Total Tareas',
-            value: totalActividades.toString(),
-            color: isDark ? DesignTokens.cyanNeon : Color(0xFF0077C2),
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: DesignTokens.space16),
-        Expanded(
-          child: _buildKPICard(
-            icon: Icons.pending_actions_rounded,
-            title: 'Pendientes',
-            value: actividadesPendientes.toString(),
-            color: DesignTokens.warningYellow,
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: DesignTokens.space16),
-        Expanded(
-          child: _buildKPICard(
-            icon: Icons.check_circle_rounded,
-            title: 'Completadas',
-            value: actividadesCompletadas.toString(),
-            color: DesignTokens.safeGreen,
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: DesignTokens.space16),
-        Expanded(
-          child: _buildKPICard(
-            icon: Icons.bar_chart_rounded, // Icono de Reportes
-            title: 'Ver Reportes',
-            value: 'Reportes',
-            color: DesignTokens.purpleNeon,
-            isDark: isDark,
-            onTap: () {
-              // Navegar a la pestaña de reportes (index 5)
-              if (widget.onNavigate != null) {
-                widget.onNavigate!(5);
-              }
-            },
-            isAction: true,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        if (isMobile) {
+          // Mobile: 2x2 Grid
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildKPICard(
+                      icon: Icons.task_alt_rounded,
+                      title: 'Total Tareas',
+                      value: totalActividades.toString(),
+                      color: isDark ? DesignTokens.cyanNeon : Color(0xFF0077C2),
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: DesignTokens.space12),
+                  Expanded(
+                    child: _buildKPICard(
+                      icon: Icons.pending_actions_rounded,
+                      title: 'Pendientes',
+                      value: actividadesPendientes.toString(),
+                      color: DesignTokens.warningYellow,
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DesignTokens.space12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildKPICard(
+                      icon: Icons.check_circle_rounded,
+                      title: 'Completadas',
+                      value: actividadesCompletadas.toString(),
+                      color: DesignTokens.safeGreen,
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: DesignTokens.space12),
+                  Expanded(
+                    child: _buildKPICard(
+                      icon: Icons.bar_chart_rounded,
+                      title: 'Ver Reportes',
+                      value: 'Reportes',
+                      color: DesignTokens.purpleNeon,
+                      isDark: isDark,
+                      onTap: () {
+                        if (widget.onNavigate != null) {
+                          widget.onNavigate!(5);
+                        }
+                      },
+                      isAction: true,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        } else {
+          // Desktop: Row of 4
+          return Row(
+            children: [
+              Expanded(
+                child: _buildKPICard(
+                  icon: Icons.task_alt_rounded,
+                  title: 'Total Tareas',
+                  value: totalActividades.toString(),
+                  color: isDark ? DesignTokens.cyanNeon : Color(0xFF0077C2),
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: DesignTokens.space16),
+              Expanded(
+                child: _buildKPICard(
+                  icon: Icons.pending_actions_rounded,
+                  title: 'Pendientes',
+                  value: actividadesPendientes.toString(),
+                  color: DesignTokens.warningYellow,
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: DesignTokens.space16),
+              Expanded(
+                child: _buildKPICard(
+                  icon: Icons.check_circle_rounded,
+                  title: 'Completadas',
+                  value: actividadesCompletadas.toString(),
+                  color: DesignTokens.safeGreen,
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: DesignTokens.space16),
+              Expanded(
+                child: _buildKPICard(
+                  icon: Icons.bar_chart_rounded,
+                  title: 'Ver Reportes',
+                  value: 'Reportes',
+                  color: DesignTokens.purpleNeon,
+                  isDark: isDark,
+                  onTap: () {
+                    if (widget.onNavigate != null) {
+                      widget.onNavigate!(5);
+                    }
+                  },
+                  isAction: true,
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 

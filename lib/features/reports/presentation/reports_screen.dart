@@ -42,11 +42,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignTokens.space32),
+        padding: EdgeInsets.all(
+          isMobile ? DesignTokens.space12 : DesignTokens.space24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -74,6 +77,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,15 +87,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Icon(
               Icons.picture_as_pdf_rounded,
               color: DesignTokens.urgentRed,
-              size: 32,
+              size: isMobile ? 24 : 32,
             ),
-            const SizedBox(width: DesignTokens.space16),
-            Text(
-              'Generador de Reportes PDF',
-              style: TextStyle(
-                fontSize: DesignTokens.fontSize32,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Color(0xFF111827),
+            SizedBox(
+              width: isMobile ? DesignTokens.space8 : DesignTokens.space16,
+            ),
+            Flexible(
+              child: Text(
+                'Generador de Reportes PDF',
+                style: TextStyle(
+                  fontSize: isMobile
+                      ? DesignTokens.fontSize20
+                      : DesignTokens.fontSize32,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Color(0xFF111827),
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

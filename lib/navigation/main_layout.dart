@@ -23,8 +23,44 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 1024;
 
     return Scaffold(
+      appBar: isMobile
+          ? AppBar(
+              backgroundColor: isDark
+                  ? DesignTokens.cosmicSurface.withValues(alpha: 0.95)
+                  : const Color(0xFFF8F9FA),
+              elevation: 0,
+              title: Text(
+                'PORTEX',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF111827),
+                ),
+              ),
+              iconTheme: IconThemeData(
+                color: isDark ? Colors.white : const Color(0xFF111827),
+              ),
+            )
+          : null,
+      drawer: isMobile
+          ? Drawer(
+              backgroundColor: isDark
+                  ? DesignTokens.cosmicSurface.withValues(alpha: 0.95)
+                  : const Color(0xFFF8F9FA),
+              child: Sidebar(
+                selectedIndex: _selectedIndex,
+                onItemSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                  Navigator.of(context).pop(); // Close drawer after selection
+                },
+              ),
+            )
+          : null,
       body: Container(
         // Fondo con gradiente espacial
         decoration: BoxDecoration(
@@ -42,15 +78,16 @@ class _MainLayoutState extends State<MainLayout> {
         ),
         child: Row(
           children: [
-            // Sidebar
-            Sidebar(
-              selectedIndex: _selectedIndex,
-              onItemSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
-            ),
+            // Desktop: Show sidebar
+            if (!isMobile)
+              Sidebar(
+                selectedIndex: _selectedIndex,
+                onItemSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+              ),
 
             // Área de contenido principal
             Expanded(

@@ -129,34 +129,43 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Column(
         children: [
-          // Header con título y botón de nueva tarea
-          _buildHeader(
-            isDark,
-          ).animate().fadeIn(duration: 200.ms).slideY(begin: -0.1),
-
-          const SizedBox(height: DesignTokens.space24),
-
-          // KPIs
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.space32,
+          // Header y KPIs - Fixed
+          Container(
+            padding: EdgeInsets.all(
+              isMobile ? DesignTokens.space12 : DesignTokens.space24,
             ),
-            child: _buildKPIsRow(
-              isDark,
-            ).animate().fadeIn(delay: 50.ms, duration: 200.ms),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header con título
+                _buildHeader(
+                  isDark,
+                ).animate().fadeIn(duration: 200.ms).slideY(begin: -0.1),
+
+                const SizedBox(height: DesignTokens.space24),
+
+                // KPIs
+                _buildKPIsRow(
+                  isDark,
+                ).animate().fadeIn(delay: 50.ms, duration: 200.ms),
+              ],
+            ),
           ),
 
           const SizedBox(height: DesignTokens.space24),
 
           // Buscador y filtros
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.space32,
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile
+                  ? DesignTokens.space12
+                  : DesignTokens.space24,
             ),
             child: _buildSearchAndFilters(
               isDark,
@@ -165,11 +174,13 @@ class _TasksScreenState extends State<TasksScreen> {
 
           const SizedBox(height: DesignTokens.space24),
 
-          // Lista de tareas
+          // Lista de tareas - Scrollable
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignTokens.space32,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile
+                    ? DesignTokens.space12
+                    : DesignTokens.space24,
               ),
               child: _tareasFiltradas.isEmpty
                   ? _buildEmptyState(isDark)

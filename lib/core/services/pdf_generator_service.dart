@@ -24,6 +24,11 @@ class PdfGeneratorService {
     // Usar fuente estándar (Helvetica) para evitar errores de carga de assets/manifiestos
     final ttf = pw.Font.helvetica();
 
+    final totalPrecio = actividades.fold<double>(
+      0,
+      (sum, item) => sum + (item.precio ?? 0),
+    );
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -41,7 +46,13 @@ class PdfGeneratorService {
           pw.SizedBox(height: 30),
 
           // Título del reporte
-          _buildReportTitle(clienteNombre, fechaInicio, fechaFin, ttf),
+          _buildReportTitle(
+            clienteNombre,
+            fechaInicio,
+            fechaFin,
+            totalPrecio,
+            ttf,
+          ),
 
           pw.SizedBox(height: 20),
 
@@ -187,19 +198,48 @@ class PdfGeneratorService {
     String cliente,
     DateTime inicio,
     DateTime fin,
+    double totalPrecio,
     pw.Font font,
   ) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(
-          'Reporte de Actividades',
-          style: pw.TextStyle(
-            font: font,
-            fontSize: 24,
-            fontWeight: pw.FontWeight.bold,
-            color: PdfColor.fromHex('#111827'),
-          ),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            pw.Text(
+              'Reporte de Actividades',
+              style: pw.TextStyle(
+                font: font,
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColor.fromHex('#111827'),
+              ),
+            ),
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'Monto Total',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 10,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+                pw.Text(
+                  'Bs ${totalPrecio.toStringAsFixed(2)}',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColor.fromHex('#3B82F6'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         pw.SizedBox(height: 10),
         pw.Row(
@@ -254,38 +294,31 @@ class PdfGeneratorService {
   }
 
   static pw.Widget _buildSummary(List<Actividade> actividades, pw.Font font) {
-    final total = actividades.length;
-    final completadas = actividades.where((a) => a.completada).length;
-    final pendientes = total - completadas;
+    // Agrupar por tipo
+    final Map<String, int> conteoPorTipo = {};
+    for (var actividad in actividades) {
+      conteoPorTipo[actividad.tipo] = (conteoPorTipo[actividad.tipo] ?? 0) + 1;
+    }
 
     return pw.Container(
+      width: double.infinity,
       padding: const pw.EdgeInsets.all(15),
       decoration: pw.BoxDecoration(
         color: PdfColor.fromHex('#F3F4F6'),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
       ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(
-            'Total',
-            total.toString(),
-            PdfColor.fromHex('#3B82F6'),
+      child: pw.Wrap(
+        alignment: pw.WrapAlignment.spaceAround,
+        spacing: 20,
+        runSpacing: 10,
+        children: conteoPorTipo.entries.map((entry) {
+          return _buildStatItem(
+            entry.key, // Nombre del tipo
+            entry.value.toString(), // Cantidad
+            PdfColor.fromHex('#10B981'), // Color verde para tipos
             font,
-          ),
-          _buildStatItem(
-            'Completadas',
-            completadas.toString(),
-            PdfColor.fromHex('#10B981'),
-            font,
-          ),
-          _buildStatItem(
-            'Pendientes',
-            pendientes.toString(),
-            PdfColor.fromHex('#EF4444'),
-            font,
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -338,7 +371,7 @@ class PdfGeneratorService {
             _buildTableHeader('Tipo', font),
             _buildTableHeader('Estado', font),
             _buildTableHeader('Fecha', font),
-            _buildTableHeader('Completada', font),
+            _buildTableHeader('Precio (Bs)', font),
           ],
         ),
         // Rows
@@ -346,9 +379,9 @@ class PdfGeneratorService {
           final actividad = actividades[index];
           return pw.TableRow(
             decoration: pw.BoxDecoration(
-              color: actividad.completada
-                  ? PdfColor.fromHex('#D1FAE5')
-                  : PdfColors.white,
+              color: index % 2 == 0
+                  ? PdfColors.white
+                  : PdfColor.fromHex('#F3F4F6'),
             ),
             children: [
               _buildTableCell((index + 1).toString(), font),
@@ -359,7 +392,12 @@ class PdfGeneratorService {
                 DateFormat('dd/MM/yyyy').format(actividad.fechaInicio),
                 font,
               ),
-              _buildTableCell(actividad.completada ? 'SI' : 'NO', font),
+              _buildTableCell(
+                actividad.precio != null
+                    ? 'Bs ${actividad.precio!.toStringAsFixed(2)}'
+                    : 'Bs 0.00',
+                font,
+              ),
             ],
           );
         }),

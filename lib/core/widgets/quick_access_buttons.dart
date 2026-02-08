@@ -10,12 +10,14 @@ class QuickAccessButtons extends StatelessWidget {
   final bool isDark;
   final VoidCallback onTaskCreated;
   final VoidCallback onClientCreated;
+  final Function(int)? onNavigate;
 
   const QuickAccessButtons({
     super.key,
     required this.isDark,
     required this.onTaskCreated,
     required this.onClientCreated,
+    this.onNavigate,
   });
 
   @override
@@ -65,14 +67,16 @@ class QuickAccessButtons extends StatelessWidget {
             label: 'Ver Reportes',
             color: DesignTokens.warningYellow,
             onTap: () {
-              // Navegar a reportes (si usas navegación nombrada o similar)
-              // Por ahora solo un mensaje
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Usa el sidebar para acceder a Reportes'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              if (onNavigate != null) {
+                onNavigate!(5);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Navegación no disponible'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
           ),
         ),

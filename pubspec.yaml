@@ -41,6 +41,14 @@ dependencies:
   shared_preferences: ^2.3.4
   file_picker: ^8.1.6
   window_manager: ^0.3.9
+  bitsdojo_window: ^0.1.6
+  url_launcher: ^6.3.0
+  
+  # P2P Local Sync
+  shelf: ^1.4.0              # HTTP server (Desktop only)
+  http: ^1.2.0               # HTTP client
+  network_info_plus: ^5.0.0  # Get local IP address
+  qr_flutter: ^4.1.0         # QR code generation
   
   # Google Fonts
   google_fonts: ^6.2.1

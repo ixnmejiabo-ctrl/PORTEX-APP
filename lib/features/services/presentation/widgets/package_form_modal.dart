@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' show Value;
 import '../../../../core/database/database.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -60,6 +61,8 @@ class _PackageFormModalState extends State<PackageFormModal> {
             descripcion: _descripcionController.text.trim(),
             precio: double.parse(_precioController.text.trim()),
             esServicio: false, // es paquete
+            synced: Value(false),
+            version: Value(1),
           ),
         );
       } else {
@@ -71,6 +74,9 @@ class _PackageFormModalState extends State<PackageFormModal> {
             descripcion: _descripcionController.text.trim(),
             precio: double.parse(_precioController.text.trim()),
             esServicio: false,
+            synced: false,
+            updatedAt: DateTime.now(),
+            version: widget.paquete!.version + 1,
           ),
         );
       }

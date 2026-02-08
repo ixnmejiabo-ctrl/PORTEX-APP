@@ -71,6 +71,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -85,8 +86,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
           // KPIs
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.space32,
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile
+                  ? DesignTokens.space12
+                  : DesignTokens.space24,
             ),
             child: _buildKPIsRow(
               isDark,
@@ -97,8 +100,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
           // Buscador
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.space32,
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile
+                  ? DesignTokens.space12
+                  : DesignTokens.space24,
             ),
             child: _buildSearchBar(
               isDark,
@@ -110,8 +115,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
           // Lista de clientes
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignTokens.space32,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile
+                    ? DesignTokens.space12
+                    : DesignTokens.space24,
               ),
               child: _clientesFiltrados.isEmpty
                   ? _buildEmptyState(isDark)
@@ -151,10 +158,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignTokens.space32,
-        vertical: DesignTokens.space24,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? DesignTokens.space12 : DesignTokens.space24,
+        vertical: isMobile ? DesignTokens.space16 : DesignTokens.space24,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -165,14 +174,25 @@ class _ClientsScreenState extends State<ClientsScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.people_rounded, color: DesignTokens.purpleNeon, size: 32),
-          const SizedBox(width: DesignTokens.space16),
-          Text(
-            'Gestión de Clientes',
-            style: TextStyle(
-              fontSize: DesignTokens.fontSize32,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Color(0xFF111827),
+          Icon(
+            Icons.people_rounded,
+            color: DesignTokens.purpleNeon,
+            size: isMobile ? 24 : 32,
+          ),
+          SizedBox(
+            width: isMobile ? DesignTokens.space8 : DesignTokens.space16,
+          ),
+          Flexible(
+            child: Text(
+              'Gestión de Clientes',
+              style: TextStyle(
+                fontSize: isMobile
+                    ? DesignTokens.fontSize24
+                    : DesignTokens.fontSize32,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Color(0xFF111827),
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

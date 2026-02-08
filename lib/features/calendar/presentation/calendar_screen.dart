@@ -41,11 +41,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignTokens.space32),
+        padding: EdgeInsets.all(
+          isMobile ? DesignTokens.space12 : DesignTokens.space24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -518,6 +521,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         nombreClienteManual: act.nombreClienteManual,
                         notas: act.notas,
                         completada: value,
+                        synced: false,
+                        updatedAt: DateTime.now(),
+                        version: act.version + 1,
                       );
                       await db.actualizarActividad(updated);
                       if (context.mounted) {

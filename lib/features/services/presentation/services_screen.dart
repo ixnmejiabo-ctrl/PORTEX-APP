@@ -44,6 +44,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -58,8 +59,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
           // Tabs
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.space32,
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile
+                  ? DesignTokens.space12
+                  : DesignTokens.space24,
             ),
             child: _buildTabs(isDark).animate().fadeIn(delay: 50.ms),
           ),
@@ -69,8 +72,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
           // Contenido según tab
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignTokens.space32,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile
+                    ? DesignTokens.space12
+                    : DesignTokens.space24,
               ),
               child: _isLoading
                   ? Center(
@@ -90,10 +95,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignTokens.space32,
-        vertical: DesignTokens.space24,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? DesignTokens.space12 : DesignTokens.space24,
+        vertical: isMobile ? DesignTokens.space16 : DesignTokens.space24,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(

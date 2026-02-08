@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/database/database.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/widgets/glass_container.dart';
+import '../core/widgets/creator_info_dialog.dart';
 
 /// Sidebar con efecto glassmorphism y navegación principal
 class Sidebar extends StatefulWidget {
@@ -136,6 +137,60 @@ class _SidebarState extends State<Sidebar> {
                 context: context,
               ),
             ],
+          ),
+
+          const Spacer(),
+
+          // Creator Info Button
+          InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return const CreatorInfoDialog();
+                },
+              );
+            },
+            borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: DesignTokens.space8,
+                horizontal: DesignTokens.space12,
+              ),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: isDark
+                        ? DesignTokens.meteorGray
+                        : const Color(0xFF6B7280),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Info Creador',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? DesignTokens.meteorGray
+                          : const Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
 
           const SizedBox(height: DesignTokens.space16),

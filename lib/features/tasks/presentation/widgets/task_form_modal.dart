@@ -677,6 +677,9 @@ class _TaskFormModalState extends State<TaskFormModal> {
     Function(DateTime) onChanged,
     bool isDark,
   ) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -695,12 +698,19 @@ class _TaskFormModalState extends State<TaskFormModal> {
           prefixIcon: Icon(
             Icons.calendar_today_rounded,
             color: DesignTokens.cyanNeon,
+            size: isMobile ? 18 : 24,
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 8 : 12,
+            vertical: isMobile ? 12 : 16,
           ),
         ),
         child: Text(
           '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
           style: TextStyle(
-            fontSize: DesignTokens.fontSize14,
+            fontSize: isMobile
+                ? DesignTokens.fontSize12
+                : DesignTokens.fontSize14,
             color: isDark ? Colors.white : Color(0xFF1F2937),
           ),
         ),
